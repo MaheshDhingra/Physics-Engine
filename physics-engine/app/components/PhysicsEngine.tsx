@@ -21,9 +21,11 @@ export interface PhysicsEngineRef {
   addBody: (body: Omit<Body, 'id'>) => void;
   setGravityMagnitude: (magnitude: number) => void;
   setFrictionEnabled: (enabled: boolean) => void;
+  setElasticity: (elasticity: number) => void;
+  clearBodies: () => void;
 }
 
-const PhysicsEngine = forwardRef<PhysicsEngineRef, object>((props, ref) => {
+const PhysicsEngine = forwardRef<PhysicsEngineRef, {}>((props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bodiesRef = useRef<Body[]>([]);
   const animationFrameId = useRef<number | null>(null);
@@ -31,11 +33,16 @@ const PhysicsEngine = forwardRef<PhysicsEngineRef, object>((props, ref) => {
 
   const [gravityMagnitude, setGravityMagnitude] = useState<number>(9.8);
   const [frictionEnabled, setFrictionEnabled] = useState<boolean>(true);
+  const [elasticity, setElasticity] = useState<number>(0.7); // New state for elasticity
 
   const GRAVITY = { x: 0, y: gravityMagnitude }; // m/s^2
 
   const addBody = useCallback((newBody: Omit<Body, 'id'>) => {
     bodiesRef.current.push({ ...newBody, id: Math.random().toString(36).substr(2, 9) });
+  }, []);
+
+  const clearBodies = useCallback(() => {
+    bodiesRef.current = [];
   }, []);
 
   const updatePhysics = useCallback((deltaTime: number) => {
@@ -96,7 +103,6 @@ const PhysicsEngine = forwardRef<PhysicsEngineRef, object>((props, ref) => {
 
           // Only resolve if bodies are moving towards each other
           if (dotProduct < 0) {
-            const elasticity = 0.7; // Coefficient of restitution
             const impulse = (-(1 + elasticity) * dotProduct) / (1 / bodyA.mass + 1 / bodyB.mass);
 
             const impulseX = impulse * normalX;
@@ -129,30 +135,30 @@ const PhysicsEngine = forwardRef<PhysicsEngineRef, object>((props, ref) => {
       // Floor
       if (body.position.y + body.radius > canvas.height) {
         body.position.y = canvas.height - body.radius;
-        body.velocity.y *= -0.7; // Bounce with some energy loss
+        body.velocity.y *= -elasticity; // Bounce with elasticity
         if (Math.abs(body.velocity.y) < 0.1) body.velocity.y = 0; // Stop small bounces
       }
       // Ceiling
       if (body.position.y - body.radius < 0) {
         body.position.y = body.radius;
-        body.velocity.y *= -0.7;
+        body.velocity.y *= -elasticity;
         if (Math.abs(body.velocity.y) < 0.1) body.velocity.y = 0;
       }
       // Right wall
       if (body.position.x + body.radius > canvas.width) {
         body.position.x = canvas.width - body.radius;
-        body.velocity.x *= -0.7;
+        body.velocity.x *= -elasticity;
         if (Math.abs(body.velocity.x) < 0.1) body.velocity.x = 0;
       }
       // Left wall
       if (body.position.x - body.radius < 0) {
         body.position.x = body.radius;
-        body.velocity.x *= -0.7;
+        body.velocity.x *= -elasticity;
         if (Math.abs(body.velocity.x) < 0.1) body.velocity.x = 0;
       }
     });
 
-  }, [gravityMagnitude, frictionEnabled, GRAVITY.x, GRAVITY.y]); // Dependencies for physics updates
+  }, [gravityMagnitude, frictionEnabled, elasticity]); // Dependencies for physics updates
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -209,6 +215,8 @@ const PhysicsEngine = forwardRef<PhysicsEngineRef, object>((props, ref) => {
     addBody,
     setGravityMagnitude,
     setFrictionEnabled,
+    setElasticity,
+    clearBodies,
   }));
 
   return (

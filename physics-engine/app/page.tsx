@@ -7,9 +7,10 @@ export default function Home() {
   const physicsEngineRef = useRef<PhysicsEngineRef>(null);
   const [gravityInput, setGravityInput] = useState<string>('9.8');
   const [frictionEnabled, setFrictionEnabled] = useState<boolean>(true);
+  const [elasticityInput, setElasticityInput] = useState<string>('0.7'); // New state for elasticity
   const [bodyRadius, setBodyRadius] = useState<string>('20');
   const [bodyMass, setBodyMass] = useState<string>('10');
-  const [bodyColor, setBodyColor] = useState<string>('blue');
+  const [bodyColor, setBodyColor] = useState<string>('#0000FF'); // Changed default to hex for color input
 
   const handleGravityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGravityInput(e.target.value);
@@ -29,6 +30,14 @@ export default function Home() {
     });
   };
 
+  const handleElasticityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setElasticityInput(e.target.value);
+    const newElasticity = parseFloat(e.target.value);
+    if (!isNaN(newElasticity) && physicsEngineRef.current) {
+      physicsEngineRef.current.setElasticity(newElasticity);
+    }
+  };
+
   const handleAddBody = () => {
     const radius = parseFloat(bodyRadius);
     const mass = parseFloat(bodyMass);
@@ -41,6 +50,12 @@ export default function Home() {
         radius: radius,
         color: bodyColor,
       });
+    }
+  };
+
+  const handleClearBodies = () => {
+    if (physicsEngineRef.current) {
+      physicsEngineRef.current.clearBodies();
     }
   };
 
@@ -78,7 +93,23 @@ export default function Home() {
           />
         </div>
 
-        <h3 className="text-gray-700 text-xl font-semibold mb-3 mt-6">Add New Body</h3>
+        <div className="mb-4">
+          <label htmlFor="elasticity" className="block text-lg font-medium text-gray-700">
+            Elasticity (0.0 - 1.0):
+          </label>
+          <input
+            type="number"
+            id="elasticity"
+            value={elasticityInput}
+            onChange={handleElasticityChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            step="0.05"
+            min="0"
+            max="1"
+          />
+        </div>
+
+        <h3 className="text-xl font-semibold mb-3 mt-6">Add New Body</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label htmlFor="bodyRadius" className="block text-sm font-medium text-gray-700">
@@ -89,7 +120,7 @@ export default function Home() {
               id="bodyRadius"
               value={bodyRadius}
               onChange={(e) => setBodyRadius(e.target.value)}
-              className="text-gray-700 mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
               step="1"
             />
           </div>
@@ -102,7 +133,7 @@ export default function Home() {
               id="bodyMass"
               value={bodyMass}
               onChange={(e) => setBodyMass(e.target.value)}
-              className="text-gray-700 mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
               step="1"
             />
           </div>
@@ -121,9 +152,15 @@ export default function Home() {
         </div>
         <button
           onClick={handleAddBody}
-          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2"
         >
           Add Body
+        </button>
+        <button
+          onClick={handleClearBodies}
+          className="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Clear All Bodies
         </button>
       </div>
 
