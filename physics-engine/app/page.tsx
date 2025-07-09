@@ -46,7 +46,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold mb-8">Web-based Physics Engine</h1>
+      <h1 className="text-4xl font-bold mb-8">Physics Engine</h1>
 
       <div className="controls-menu mb-8 p-4 border rounded-lg shadow-md bg-white">
         <h2 className="text-gray-700 text-2xl font-semibold mb-4">Controls</h2>
