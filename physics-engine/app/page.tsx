@@ -1,103 +1,133 @@
-import Image from "next/image";
+"use client";
+
+import React, { useRef, useState } from 'react';
+import PhysicsEngine, { PhysicsEngineRef } from "./components/PhysicsEngine";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const physicsEngineRef = useRef<PhysicsEngineRef>(null);
+  const [gravityInput, setGravityInput] = useState<string>('9.8');
+  const [frictionEnabled, setFrictionEnabled] = useState<boolean>(true);
+  const [bodyRadius, setBodyRadius] = useState<string>('20');
+  const [bodyMass, setBodyMass] = useState<string>('10');
+  const [bodyColor, setBodyColor] = useState<string>('blue');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleGravityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGravityInput(e.target.value);
+    const newGravity = parseFloat(e.target.value);
+    if (!isNaN(newGravity) && physicsEngineRef.current) {
+      physicsEngineRef.current.setGravityMagnitude(newGravity);
+    }
+  };
+
+  const handleFrictionToggle = () => {
+    setFrictionEnabled((prev) => {
+      const newState = !prev;
+      if (physicsEngineRef.current) {
+        physicsEngineRef.current.setFrictionEnabled(newState);
+      }
+      return newState;
+    });
+  };
+
+  const handleAddBody = () => {
+    const radius = parseFloat(bodyRadius);
+    const mass = parseFloat(bodyMass);
+    if (!isNaN(radius) && !isNaN(mass) && physicsEngineRef.current) {
+      physicsEngineRef.current.addBody({
+        position: { x: 400 + (Math.random() - 0.5) * 100, y: 50 }, // Randomize initial x slightly
+        velocity: { x: 0, y: 0 },
+        acceleration: { x: 0, y: 0 },
+        mass: mass,
+        radius: radius,
+        color: bodyColor,
+      });
+    }
+  };
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <h1 className="text-4xl font-bold mb-8">Web-based Physics Engine</h1>
+
+      <div className="controls-menu mb-8 p-4 border rounded-lg shadow-md bg-white">
+        <h2 className="text-gray-700 text-2xl font-semibold mb-4">Controls</h2>
+
+        <div className="mb-4">
+          <label htmlFor="gravity" className="block text-lg font-medium text-gray-700">
+            Gravity Magnitude (m/s²):
+          </label>
+          <input
+            type="number"
+            id="gravity"
+            value={gravityInput}
+            onChange={handleGravityChange}
+            className="text-gray-700 mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            step="0.1"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        <div className="mb-4 flex items-center">
+          <label htmlFor="friction" className="text-lg font-medium text-gray-700 mr-3">
+            Friction:
+          </label>
+          <input
+            type="checkbox"
+            id="friction"
+            checked={frictionEnabled}
+            onChange={handleFrictionToggle}
+            className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        </div>
+
+        <h3 className="text-gray-700 text-xl font-semibold mb-3 mt-6">Add New Body</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label htmlFor="bodyRadius" className="block text-sm font-medium text-gray-700">
+              Radius:
+            </label>
+            <input
+              type="number"
+              id="bodyRadius"
+              value={bodyRadius}
+              onChange={(e) => setBodyRadius(e.target.value)}
+              className="text-gray-700 mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
+              step="1"
+            />
+          </div>
+          <div>
+            <label htmlFor="bodyMass" className="block text-sm font-medium text-gray-700">
+              Mass:
+            </label>
+            <input
+              type="number"
+              id="bodyMass"
+              value={bodyMass}
+              onChange={(e) => setBodyMass(e.target.value)}
+              className="text-gray-700 mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
+              step="1"
+            />
+          </div>
+          <div>
+            <label htmlFor="bodyColor" className="block text-sm font-medium text-gray-700">
+              Color:
+            </label>
+            <input
+              type="color"
+              id="bodyColor"
+              value={bodyColor}
+              onChange={(e) => setBodyColor(e.target.value)}
+              className="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleAddBody}
+          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          Add Body
+        </button>
+      </div>
+
+      <PhysicsEngine ref={physicsEngineRef} />
+    </main>
   );
 }
