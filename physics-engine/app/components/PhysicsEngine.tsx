@@ -23,7 +23,7 @@ export interface PhysicsEngineRef {
   setFrictionEnabled: (enabled: boolean) => void;
 }
 
-const PhysicsEngine = forwardRef<PhysicsEngineRef, {}>((props, ref) => {
+const PhysicsEngine = forwardRef<PhysicsEngineRef, object>((props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bodiesRef = useRef<Body[]>([]);
   const animationFrameId = useRef<number | null>(null);
@@ -152,7 +152,7 @@ const PhysicsEngine = forwardRef<PhysicsEngineRef, {}>((props, ref) => {
       }
     });
 
-  }, [gravityMagnitude, frictionEnabled]); // Dependencies for physics updates
+  }, [gravityMagnitude, frictionEnabled, GRAVITY.x, GRAVITY.y]); // Dependencies for physics updates
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
